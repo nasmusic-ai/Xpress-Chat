@@ -1,278 +1,155 @@
 import { auth, db } from './firebase-config.js';
 
 // DOM Elements
-const messagesContainer = document.getElementById('messages');
-const messageInput = document.getElementById('msg');
-const sendButton = document.querySelector('.inputBar button');
-const roomNameElement = document.getElementById('roomName');
-const onlineCountElement = document.getElementById('onlineCount');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const avatarInput = document.getElementById('avatar');
 
-// Global variables
-let currentUser = null;
-let userProfile = null;
-let unsubscribeMessages = null;
-let unsubscribeOnline = null;
-const roomId = 'main'; // Single chat room
-
-// Initialize chat
-async function initChat() {
-  try {
-    // Get current user
-    currentUser = auth.currentUser;
-    
-    if (!currentUser) {
-      // Try to get user from localStorage
-      const uid = localStorage.getItem('uid');
-      if (uid) {
-        // Re-authenticate from localStorage
-        await auth.signInAnonymously().catch(() => {
-          window.location.href = 'login.html';
-        });
-        currentUser = auth.currentUser;
-      } else {
-        window.location.href = 'login.html';
-        return;
-      }
-    }
-    
-    // Load user profile
-    const userDoc = await db.collection('users').doc(currentUser.uid).get();
-    if (userDoc.exists) {
-      userProfile = userDoc.data();
-      
-      // Apply saved theme
-      if (userProfile.theme) {
-        document.body.dataset.theme = userProfile.theme;
-      }
-      
-      // Update online status
-      await db.collection('users').doc(currentUser.uid).update({
-        online: true,
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-      // Create basic profile if missing
-      userProfile = {
-        displayName: currentUser.email?.split('@')[0] || 'User',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
-        theme: 'light'
-      };
-      await db.collection('users').doc(currentUser.uid).set({
-        ...userProfile,
-        uid: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        online: true
-      });
-    }
-    
-    // Set room name
-    roomNameElement.textContent = 'CORUSCANT_CENTRAL';
-    
-    // Load messages
-    loadMessages();
-    
-    // Setup online users listener
-    setupOnlineUsers();
-    
-    // Set up message input handler
-    setupMessageInput();
-    
-    // Handle page visibility/close
-    setupVisibilityHandler();
-    
-  } catch (error) {
-    console.error('Chat initialization error:', error);
-    alert('Failed to initialize chat. Please refresh.');
+// Show message function
+function showMessage(message, type = 'error') {
+  const existingMsg = document.querySelector('.message');
+  if (existingMsg) existingMsg.remove();
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `message ${type}`;
+  msgDiv.textContent = message;
+  
+  const container = document.querySelector('.login-container');
+  container.insertBefore(msgDiv, container.firstChild.nextSibling);
+  
+  if (type !== 'error') {
+    setTimeout(() => msgDiv.remove(), 5000);
   }
 }
 
-// Load and listen for messages
-function loadMessages() {
-  unsubscribeMessages = db.collection('messages')
-    .where('roomId', '==', roomId)
-    .orderBy('timestamp', 'asc')
-    .onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          displayMessage(change.doc.data());
-        }
-      });
-      
-      // Auto-scroll to bottom
-      setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 100);
-    }, (error) => {
-      console.error('Message listener error:', error);
+// Handle user registration
+async function handleSignUp() {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  const avatar = avatarInput.value.trim();
+  
+  if (!email || !password) {
+    showMessage('Please enter email and password');
+    return;
+  }
+  
+  if (password.length < 6) {
+    showMessage('Password must be at least 6 characters');
+    return;
+  }
+  
+  try {
+    // Create user with email and password
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    // Create user profile in Firestore
+    await db.collection('users').doc(user.uid).set({
+      email: email,
+      avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`,
+      displayName: email.split('@')[0],
+      uid: user.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      online: true,
+      theme: 'light'
     });
+    
+    // Store user ID in localStorage
+    localStorage.setItem('uid', user.uid);
+    localStorage.setItem('userEmail', email);
+    
+    showMessage('Registration successful! Redirecting...', 'success');
+    
+    // Redirect to chat
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 1500);
+    
+  } catch (error) {
+    console.error('Signup error:', error);
+    
+    switch(error.code) {
+      case 'auth/email-already-in-use':
+        showMessage('Email already registered. Please login.');
+        break;
+      case 'auth/invalid-email':
+        showMessage('Invalid email format.');
+        break;
+      case 'auth/weak-password':
+        showMessage('Password is too weak.');
+        break;
+      default:
+        showMessage(`Error: ${error.message}`);
+    }
+  }
 }
 
-// Display a single message
-function displayMessage(message) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${message.senderId === currentUser.uid ? 'own' : ''}`;
+// Handle user login
+async function handleLogin() {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
   
-  const time = message.timestamp ? 
-    new Date(message.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
-    'Just now';
+  if (!email || !password) {
+    showMessage('Please enter email and password');
+    return;
+  }
   
-  messageDiv.innerHTML = `
-    <div class="sender">${message.senderName}</div>
-    ${message.text}
-    <div class="time">${time}</div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-}
-
-// Setup online users listener
-function setupOnlineUsers() {
-  unsubscribeOnline = db.collection('users')
-    .where('online', '==', true)
-    .onSnapshot((snapshot) => {
-      const onlineCount = snapshot.size;
-      onlineCountElement.textContent = `Online: ${onlineCount}`;
+  try {
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    // Store user ID in localStorage
+    localStorage.setItem('uid', user.uid);
+    localStorage.setItem('userEmail', email);
+    
+    // Update user status
+    await db.collection('users').doc(user.uid).update({
+      online: true,
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp()
     });
-}
-
-// Setup message input handling
-function setupMessageInput() {
-  // Send button click
-  sendButton.addEventListener('click', sendMessage);
-  
-  // Enter key press
-  messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-}
-
-// Send message function
-async function sendMessage() {
-  const text = messageInput.value.trim();
-  
-  if (!text) return;
-  
-  // Disable input while sending
-  messageInput.disabled = true;
-  sendButton.disabled = true;
-  sendButton.textContent = 'SENDING...';
-  
-  try {
-    const message = {
-      text: text,
-      senderId: currentUser.uid,
-      senderName: userProfile.displayName || currentUser.email?.split('@')[0] || 'User',
-      senderAvatar: userProfile.avatar,
-      roomId: roomId,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
     
-    // Add message to Firestore
-    await db.collection('messages').add(message);
+    showMessage('Login successful! Redirecting...', 'success');
     
-    // Clear input
-    messageInput.value = '';
+    // Redirect to chat
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 1500);
     
   } catch (error) {
-    console.error('Error sending message:', error);
-    alert('Failed to send message. Please try again.');
-  } finally {
-    // Re-enable input
-    messageInput.disabled = false;
-    sendButton.disabled = false;
-    sendButton.textContent = 'SEND';
-    messageInput.focus();
-  }
-}
-
-// Setup page visibility handler
-function setupVisibilityHandler() {
-  document.addEventListener('visibilitychange', async () => {
-    if (document.hidden) {
-      await updateOnlineStatus(false);
-    } else {
-      await updateOnlineStatus(true);
-    }
-  });
-  
-  window.addEventListener('beforeunload', async () => {
-    await updateOnlineStatus(false);
-  });
-}
-
-// Update user's online status
-async function updateOnlineStatus(online) {
-  if (!currentUser) return;
-  
-  try {
-    await db.collection('users').doc(currentUser.uid).update({
-      online: online,
-      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch (error) {
-    console.error('Error updating online status:', error);
-  }
-}
-
-// Switch theme (Jedi/Sith)
-async function switchSide(side) {
-  document.body.dataset.theme = side;
-  
-  // Save theme preference
-  if (currentUser) {
-    try {
-      await db.collection('users').doc(currentUser.uid).update({
-        theme: side
-      });
-      userProfile.theme = side;
-    } catch (error) {
-      console.error('Error saving theme:', error);
+    console.error('Login error:', error);
+    
+    switch(error.code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        showMessage('Invalid email or password.');
+        break;
+      case 'auth/user-disabled':
+        showMessage('Account has been disabled.');
+        break;
+      default:
+        showMessage(`Error: ${error.message}`);
     }
   }
 }
 
-// Logout function
-async function logout() {
-  try {
-    // Update online status to false
-    if (currentUser) {
-      await updateOnlineStatus(false);
-    }
-    
-    // Unsubscribe from listeners
-    if (unsubscribeMessages) unsubscribeMessages();
-    if (unsubscribeOnline) unsubscribeOnline();
-    
-    // Sign out from Firebase
-    await auth.signOut();
-    
-    // Clear localStorage
-    localStorage.removeItem('uid');
-    localStorage.removeItem('userEmail');
-    
-    // Redirect to login
-    window.location.href = 'login.html';
-    
-  } catch (error) {
-    console.error('Logout error:', error);
-    window.location.href = 'login.html';
-  }
-}
+// Make functions globally available
+window.handleSignUp = handleSignUp;
+window.handleLogin = handleLogin;
 
-// Override the placeholder send function
-window.send = sendMessage;
-window.switchSide = switchSide;
-window.logout = logout;
+// Enable form submission with Enter key
+emailInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') passwordInput.focus();
+});
 
-// Initialize chat when page loads
-window.addEventListener('DOMContentLoaded', initChat);
+passwordInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleLogin();
+});
 
-// Handle Firebase auth state changes
-auth.onAuthStateChanged((user) => {
-  if (!user && window.location.pathname.endsWith('index.html')) {
-    window.location.href = 'login.html';
-  }
+avatarInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleSignUp();
+});
+
+// Auto-focus email input on page load
+window.addEventListener('DOMContentLoaded', () => {
+  emailInput.focus();
 });
