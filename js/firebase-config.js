@@ -1,4 +1,3 @@
-// Your Firebase configuration - replace with your own
 const firebaseConfig = {
   apiKey: "AIzaSyC-5JP7gDCofoYyXv2rCVJDYBTL4Ydqmt0",
   authDomain: "xpress-chatv1.firebaseapp.com",
@@ -12,7 +11,8 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const analytics = firebase.analytics();
+// Remove analytics line since we're not using it
+// const analytics = firebase.analytics();
 
 // Export Firebase services
-export { auth, db, analytics };
+export { auth, db };
