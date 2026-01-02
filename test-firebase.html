@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Test</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Firebase Test</h1>
+  <div id="status">Loading...</div>
+  
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    
+    // Test authentication
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById('status').innerHTML = '✅ Firebase connected! User: ' + user.email;
+      } else {
+        document.getElementById('status').innerHTML = '✅ Firebase connected! No user signed in.';
+      }
+    });
+    
+    // Test Firestore
+    try {
+      const testRef = db.collection('test').doc('connection');
+      testRef.set({
+        timestamp: new Date(),
+        message: 'Firebase connection test successful'
+      }).then(() => {
+        console.log('✅ Firestore write successful');
+      });
+    } catch (error) {
+      console.error('❌ Firebase error:', error);
+      document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+    }
+  </script>
+</body>
+</html>

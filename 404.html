@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 - Signal Lost</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #000;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+      radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+      radial-gradient(2px 2px at 60px 20px, #fff, transparent);
+    animation: twinkle 3s infinite alternate;
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+  
+  .content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    padding: 2rem;
+  }
+  
+  h1 {
+    font-size: 8rem;
+    color: #00aaff;
+    text-shadow: 0 0 30px #00aaff;
+    margin-bottom: 1rem;
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  h2 {
+    font-size: 2rem;
+    color: #ffd700;
+    margin-bottom: 2rem;
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    color: #aaa;
+  }
+  
+  .button {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #00aaff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  .button:hover {
+    background: #ffd700;
+    color: #000;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #ffd700;
+  }
+  
+  @media (max-width: 600px) {
+    h1 {
+      font-size: 5rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+    }
+    
+    .content {
+      padding: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="content">
+    <h1>404</h1>
+    <h2>SIGNAL LOST IN HYPERSPACE</h2>
+    <p>The galactic coordinates you requested could not be found. The transmission may have been intercepted or the sector coordinates are invalid.</p>
+    <a href="index.html" class="button">RETURN TO BASE</a>
+  </div>
+  
+  <script>
+    // Add dynamic stars
+    document.addEventListener('DOMContentLoaded', function() {
+      const stars = document.querySelector('.stars');
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.style.position = 'absolute';
+        star.style.width = Math.random() * 3 + 'px';
+        star.style.height = star.style.width;
+        star.style.background = '#fff';
+        star.style.borderRadius = '50%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animation = `twinkle ${Math.random() * 3 + 2}s infinite alternate`;
+        stars.appendChild(star);
+      }
+    });
+  </script>
+</body>
+</html>

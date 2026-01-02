@@ -1,0 +1,12 @@
+project/
+├── index.html
+├── login.html
+├── 404.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── auth.js
+│   ├── chat.js
+│   └── firebase-config.js
+└── assets/
+    └── (optional images)

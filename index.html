@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galactic Comm-Link</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* Light Side (Jedi) - default */
+    --bg-primary: #e6f0fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #003366;
+    --text-secondary: #0055aa;
+    --accent: #00aaff;
+    --jedi-blue: #00aaff;
+    --sith-red: #ff2222;
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --input-bg: #ffffff;
+  }
+
+  [data-theme="dark"] {
+    /* Dark Side (Sith) */
+    --bg-primary: #0d0d0d;
+    --bg-secondary: #1a1a1a;
+    --text-primary: #ffaaaa;
+    --text-secondary: #ff6666;
+    --accent: #ff0000;
+    --jedi-blue: #4466aa;
+    --sith-red: #ff4444;
+    --header-bg: rgba(20, 20, 20, 0.9);
+    --input-bg: #2a2a2a;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background 0.5s ease, color 0.5s ease;
+  }
+
+  #chatHeader {
+    background: var(--header-bg);
+    backdrop-filter: blur(10px);
+    padding: 82px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    border-bottom: 2px solid var(--accent);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #chatHeader span {
+    font-weight: bold;
+  }
+
+  .theme-controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .theme-controls button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .theme-controls button:nth-child(1) { /* JEDI */
+    background: var(--jedi-blue);
+    color: white;
+  }
+
+  .theme-controls button:nth-child(2) { /* SITH */
+    background: var(--sith-red);
+    color: white;
+  }
+
+  .theme-controls button:nth-child(3) { /* LEAVE */
+    background: var(--sith-red);
+    color: white;
+  }
+
+  .theme-controls button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Scrollbar styling (optional, works in WebKit) */
+  #messages::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  #messages::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+  }
+
+  .message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    align-self: flex-start;
+    background: var(--bg-secondary);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .message.own {
+    align-self: flex-end;
+    background: var(--accent);
+    color: white;
+  }
+
+  .message .sender {
+    font-weight: bold;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+
+  .message .time {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .inputBar {
+    display: flex;
+    padding: 12px 16px;
+    background: var(--header-bg);
+    backdrop-filter: blur(10px);
+    border-top: 2px solid var(--accent);
+    flex-shrink: 0;
+  }
+
+  #msg {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--accent);
+    border-radius: 30px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+
+  #msg:focus {
+    outline: none;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .inputBar button {
+    margin-left: 10px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 30px;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .inputBar button:hover {
+    background: var(--sith-red);
+    transform: scale(1.05);
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 600px) {
+    #chatHeader {
+      font-size: 1rem;
+      padding: 10px 12px;
+    }
+
+    .theme-controls button {
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+
+    #messages {
+      padding: 12px;
+    }
+
+    .message {
+      max-width: 90%;
+      padding: 10px 12px;
+    }
+
+    .inputBar {
+      padding: 10px 12px;
+    }
+
+    #msg {
+      padding: 10px 14px;
+    }
+
+    .inputBar button {
+      padding: 0 20px;
+    }
+  }
+
+  /* Star Wars title flair */
+  #chatHeader span:first-child {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body data-theme="light"> <!-- default light -->
+
+  <div id="chatHeader">
+    <span>Sector: <b id="roomName"></b></span>
+    <div class="theme-controls">
+      <button onclick="switchSide('light')">JEDI</button>
+      <button onclick="switchSide('dark')">SITH</button>
+      <button onclick="logout()">LEAVE</button>
+    </div>
+    <span id="onlineCount"></span>
+  </div>
+
+  <div id="messages">
+    <!-- Messages will be appended here by chat.js -->
+    <!-- Example structure:
+    <div class="message">
+      <div class="sender">User123</div>
+      Hello there!
+      <div class="time">12:45</div>
+    </div>
+    <div class="message own">
+      <div class="sender">You</div>
+      General Kenobi!
+      <div class="time">12:46</div>
+    </div>
+    -->
+  </div>
+
+  <div class="inputBar">
+    <input id="msg" placeholder="Transmit signal..." autocomplete="off">
+    <button onclick="send()">SEND</button>
+  </div>
+
+  <script>
+    // Security Guard
+    if (!localStorage.getItem("uid")) {
+      window.location.href = "login.html";
+    }
+
+    // Functions will be overridden by chat.js
+    function switchSide(side) {
+      document.body.dataset.theme = side;
+    }
+
+    function logout() {
+      localStorage.removeItem("uid");
+      localStorage.removeItem("userEmail");
+      window.location.href = "login.html";
+    }
+
+    function send() {
+      // Will be overridden by chat.js
+      console.log("Send function placeholder");
+    }
+  </script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+
+  <script type="module" src="js/chat.js"></script>
+</body>
+</html>
