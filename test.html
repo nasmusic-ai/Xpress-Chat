@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Firebase Test</h1>
+  <div id="status">Testing...</div>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    
+    auth.onAuthStateChanged((user) => {
+      document.getElementById('status').textContent = 
+        user ? '✅ Firebase connected! User: ' + user.email : 
+        '✅ Firebase connected! No user signed in';
+    });
+  </script>
+</body>
+</html>
