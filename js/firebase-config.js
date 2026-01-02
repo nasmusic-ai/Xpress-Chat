@@ -4,15 +4,13 @@ const firebaseConfig = {
   projectId: "xpress-chatv1",
   storageBucket: "xpress-chatv1.firebasestorage.app",
   messagingSenderId: "118218510976",
-  appId: "1:118218510976:web:4ab217a909285f52828c65",
+  appId: "1:118218510976:web:4ab217a909285f52828c65"
 };
 
 // Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-// Remove analytics line since we're not using it
-// const analytics = firebase.analytics();
 
-// Export Firebase services
+// Export services
 export { auth, db };
