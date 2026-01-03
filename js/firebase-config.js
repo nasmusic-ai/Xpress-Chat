@@ -1,3 +1,9 @@
+// firebase.js (Firebase v9 - PRODUCTION)
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyC-5JP7gDCofoYyXv2rCVJDYBTL4Ydqmt0",
   authDomain: "xpress-chatv1.firebaseapp.com",
@@ -8,9 +14,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
 
-// Export services
+// Services
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 export { auth, db };
